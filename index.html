@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guess Quest</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: #101d31;
+      --panel-soft: #16263e;
+      --text: #eef5ff;
+      --muted: #94a8c4;
+      --primary: #55d6ff;
+      --accent: #ffcc66;
+      --danger: #ff7182;
+      --border: rgba(173, 212, 255, .16);
+      --shadow: 0 24px 60px rgba(0, 0, 0, .28);
+    }
+    [data-theme="light"] {
+      --bg: #edf4f7;
+      --panel: #ffffff;
+      --panel-soft: #e7f0f3;
+      --text: #152432;
+      --muted: #607586;
+      --primary: #087da5;
+      --accent: #d47f00;
+      --danger: #c84657;
+      --border: rgba(21, 36, 50, .12);
+      --shadow: 0 24px 60px rgba(39, 76, 93, .14);
+    }
+    [data-theme="neon"] {
+      --bg: #180a24;
+      --panel: #29103c;
+      --panel-soft: #36174d;
+      --text: #fff3ff;
+      --muted: #d0a8d9;
+      --primary: #63f5dc;
+      --accent: #f8e56b;
+      --danger: #ff799e;
+      --border: rgba(255, 232, 255, .18);
+      --shadow: 0 24px 60px rgba(23, 0, 39, .42);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Georgia, 'Times New Roman', serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 30%), linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--accent) 5%, transparent) 45%, transparent 75%);
+      transition: background .3s, color .3s;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 38px 0 52px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 42px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--primary); color: var(--primary); transform: rotate(45deg); }
+    .brand-mark span { transform: rotate(-45deg); font-weight: bold; font-size: 20px; }
+    .brand h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
+    .brand p { margin: 3px 0 0; color: var(--muted); font-family: Arial, sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; }
+    .theme-control { display: flex; align-items: center; gap: 10px; color: var(--muted); font-family: Arial, sans-serif; font-size: 13px; }
+    select { border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; color: var(--text); background: var(--panel); outline: none; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(270px, .7fr); gap: 22px; align-items: start; }
+    .welcome { min-height: 620px; display: grid; place-items: center; text-align: center; padding: 50px 25px; border: 1px solid var(--border); background: color-mix(in srgb, var(--panel) 93%, transparent); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+    .welcome::before, .welcome::after { content: ''; position: absolute; width: 220px; height: 220px; border: 1px solid color-mix(in srgb, var(--primary) 38%, transparent); transform: rotate(45deg); }
+    .welcome::before { top: -145px; left: -90px; }
+    .welcome::after { right: -100px; bottom: -140px; }
+    .welcome-content { position: relative; z-index: 1; }
+    .welcome-mark { margin: 0 auto 30px; color: var(--accent); font-size: 72px; line-height: 1; }
+    .welcome h2 { margin: 16px auto; }
+    .welcome p { max-width: 500px; margin: 0 auto 32px; color: var(--muted); font: 15px/1.7 Arial, sans-serif; }
+    .home-hidden { display: none !important; }
+    .hero, .side-panel { border: 1px solid var(--border); background: color-mix(in srgb, var(--panel) 93%, transparent); box-shadow: var(--shadow); }
+    .hero { min-height: 560px; padding: clamp(28px, 6vw, 68px); position: relative; overflow: hidden; }
+    .hero::after { content: ''; position: absolute; width: 270px; height: 270px; border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent); right: -120px; bottom: -120px; transform: rotate(45deg); }
+    .eyebrow { color: var(--primary); font-family: Arial, sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 12px; text-transform: uppercase; }
+    h2 { max-width: 570px; margin: 18px 0 12px; font-size: clamp(44px, 7vw, 82px); line-height: .95; font-weight: normal; letter-spacing: -2px; }
+    .intro { max-width: 470px; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.65; }
+    .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 35px 0 20px; }
+    .level { text-align: left; padding: 16px; border: 1px solid var(--border); color: var(--text); background: var(--panel-soft); transition: .2s ease; }
+    .level:hover, .level.selected { border-color: var(--primary); transform: translateY(-3px); }
+    .level.selected { box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent); }
+    .level strong { display: block; margin-bottom: 5px; color: var(--primary); font-size: 17px; }
+    .level small { color: var(--muted); font-family: Arial, sans-serif; font-size: 11px; }
+    .start { border: 0; padding: 15px 24px; color: #07121d; background: var(--accent); font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: .2s; }
+    .start:hover { filter: brightness(1.12); transform: translateY(-2px); }
+    .side-panel { padding: 24px; }
+    .side-panel h3 { margin: 0 0 20px; font-size: 23px; font-weight: normal; }
+    .score-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
+    .stat { padding: 14px; background: var(--panel-soft); border-left: 2px solid var(--primary); }
+    .stat span { display: block; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+    .stat strong { display: block; margin-top: 6px; color: var(--accent); font-size: 26px; }
+    .leaderboard { list-style: none; padding: 0; margin: 0; font-family: Arial, sans-serif; }
+    .leaderboard li { display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .leaderboard li span { color: var(--muted); }
+    .leaderboard .empty { color: var(--muted); font-style: italic; }
+    .game-view { display: none; }
+    .game-view.active { display: block; }
+    .game-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 28px; }
+    .game-head h2 { margin: 0; font-size: clamp(35px, 5vw, 58px); }
+    .back { color: var(--muted); background: none; border: 1px solid var(--border); padding: 10px 13px; }
+    .play-area { max-width: 700px; margin: 0 auto; text-align: center; }
+    .play-area p { color: var(--muted); font-family: Arial, sans-serif; }
+    .attempts { color: var(--primary) !important; font-weight: bold; }
+    .guess-form { display: flex; justify-content: center; gap: 9px; margin: 32px 0 16px; }
+    .guess-form input { width: 180px; padding: 16px; border: 1px solid var(--border); color: var(--text); background: var(--panel-soft); text-align: center; outline: none; }
+    .guess-form input:focus { border-color: var(--primary); }
+    .feedback { min-height: 30px; color: var(--accent) !important; font-size: 18px; }
+    .result { display: none; margin-top: 25px; padding: 20px; background: var(--panel-soft); border: 1px solid var(--border); }
+    .result.visible { display: block; }
+    .result h3 { margin: 0 0 8px; color: var(--primary); }
+    .result input { padding: 10px; width: min(260px, 100%); border: 1px solid var(--border); color: var(--text); background: var(--panel); }
+    .result button { margin-left: 5px; padding: 11px 15px; border: 0; color: #07121d; background: var(--accent); }
+    .result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .result-actions button { margin: 0; }
+    .result-actions .secondary { color: var(--text); border: 1px solid var(--border); background: transparent; }
+    .play-area.win { animation: win-glow .7s ease-out; border-color: color-mix(in srgb, var(--accent) 75%, var(--border)); }
+    .play-area.lose { animation: lose-shake .45s ease-out; border-color: color-mix(in srgb, var(--danger) 75%, var(--border)); }
+    .result.win h3 { color: var(--accent); }
+    .result.lose h3 { color: var(--danger); }
+    @keyframes win-glow { 0% { box-shadow: 0 0 0 rgba(255, 204, 102, 0); } 45% { box-shadow: 0 0 46px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { box-shadow: var(--shadow); } }
+    @keyframes lose-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    @media (prefers-reduced-motion: reduce) { .play-area.win, .play-area.lose { animation: none; } }
+    @media (max-width: 760px) { .app { width: min(100% - 24px, 560px); padding-top: 22px; } .topbar { align-items: flex-start; flex-direction: column; margin-bottom: 25px; } .layout { grid-template-columns: 1fr; } .hero { min-height: auto; padding: 30px 22px; } h2 { font-size: 54px; } .level-grid { grid-template-columns: 1fr; } .game-head { align-items: flex-start; flex-direction: column; } .guess-form { flex-direction: column; align-items: center; } .guess-form input, .guess-form button { width: min(100%, 280px); } .result button { margin: 9px 0 0; } }
+  </style>
+</head>
+<body data-theme="dark">
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark"><span>?</span></div><div><h1>Guess Quest</h1><p>Find the hidden number</p></div></div>
+      <label class="theme-control">Theme <select id="theme"><option value="dark">Dark</option><option value="light">Light</option><option value="neon">Neon</option></select></label>
+    </header>
+
+    <section id="welcome" class="welcome">
+      <div class="welcome-content">
+        <div class="welcome-mark">✦</div>
+        <div class="eyebrow">Welcome to the quest</div>
+        <h2>Trust your instinct.</h2>
+        <p>Read the clues, find the hidden number, and build a streak worthy of the hall of fame.</p>
+        <button id="enter-game" class="start">Enter the game</button>
+      </div>
+    </section>
+
+    <section id="home" class="layout home-hidden">
+      <div class="hero">
+        <div class="eyebrow">A little logic. A lot of glory.</div>
+        <h2>Can you read the number?</h2>
+        <p class="intro">Choose your difficulty, follow the clues, and build a winning streak. Every guess brings you closer to the top of the hall of fame.</p>
+        <div class="level-grid">
+          <button class="level selected" data-level="easy"><strong>Easy</strong><small>1 - 50 / 4 tries</small></button>
+          <button class="level" data-level="medium"><strong>Medium</strong><small>1 - 100 / 7 tries</small></button>
+          <button class="level" data-level="hard"><strong>Hard</strong><small>1 - 500 / 10 tries</small></button>
+        </div>
+        <button id="start" class="start">Start quest</button>
+      </div>
+      <aside class="side-panel">
+        <h3>Hall of fame</h3>
+        <div class="score-box"><div class="stat"><span>Best score</span><strong id="best-score">0</strong></div><div class="stat"><span>Win streak</span><strong id="streak">0</strong></div></div>
+        <ol id="leaderboard" class="leaderboard"><li class="empty">Your first score will appear here.</li></ol>
+      </aside>
+    </section>
+
+    <section id="game" class="game-view">
+      <div class="game-head"><div><div class="eyebrow" id="mode-label">Easy mode</div><h2>Make your guess.</h2></div><button id="back" class="back">Back to home</button></div>
+      <div id="play-area" class="hero play-area">
+        <p id="range-label"></p><p class="attempts" id="attempts-label"></p>
+        <form id="guess-form" class="guess-form"><input id="guess" type="number" required autofocus><button class="start" type="submit">Check guess</button></form>
+        <p id="feedback" class="feedback"></p>
+        <div id="result" class="result"><h3 id="result-title"></h3><p id="result-copy"></p><div><input id="player-name" maxlength="18" placeholder="Your name"><button id="save-score">Save score</button></div><div class="result-actions"><button type="button" id="play-again" class="start">Play again</button><button type="button" id="result-home" class="secondary">Back home</button></div></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const levels = { easy: { name: 'Easy', max: 50, tries: 4, base: 100 }, medium: { name: 'Medium', max: 100, tries: 7, base: 200 }, hard: { name: 'Hard', max: 500, tries: 10, base: 400 } };
+    const stored = JSON.parse(localStorage.getItem('guessQuestData') || '{}');
+    let data = { theme: stored.theme || 'dark', scores: stored.scores || [], streak: stored.streak || 0 };
+    let selected = 'easy';
+    let secret = 0;
+    let attempts = 0;
+    let currentScore = 0;
+    let gameOver = false;
+    const $ = id => document.getElementById(id);
+    const saveData = () => localStorage.setItem('guessQuestData', JSON.stringify(data));
+    const applyTheme = theme => { data.theme = theme; document.body.dataset.theme = theme; $('theme').value = theme; saveData(); };
+    const renderBoard = () => {
+      $('streak').textContent = data.streak;
+      $('best-score').textContent = data.scores.length ? Math.max(...data.scores.map(item => item.score)) : 0;
+      const board = [...data.scores].sort((a, b) => b.score - a.score).slice(0, 8);
+      $('leaderboard').innerHTML = board.length ? board.map((item, index) => `<li><span>${index + 1}. ${item.name} <small>${item.level}</small></span><strong>${item.score}</strong></li>`).join('') : '<li class="empty">Your first score will appear here.</li>';
+    };
+    $('enter-game').addEventListener('click', () => { $('welcome').classList.add('home-hidden'); $('home').classList.remove('home-hidden'); });
+    document.querySelectorAll('.level').forEach(button => button.addEventListener('click', () => { document.querySelector('.level.selected').classList.remove('selected'); button.classList.add('selected'); selected = button.dataset.level; }));
+    $('theme').addEventListener('change', event => applyTheme(event.target.value));
+    function startRound() {
+      const level = levels[selected]; secret = Math.floor(Math.random() * level.max) + 1; attempts = level.tries; currentScore = 0; gameOver = false;
+      $('home').style.display = 'none'; $('game').classList.add('active'); $('mode-label').textContent = `${level.name} mode`; $('range-label').textContent = `Find the hidden number from 1 to ${level.max}.`; $('feedback').textContent = ''; $('result').className = 'result'; $('play-area').className = 'hero play-area'; $('player-name').value = ''; $('save-score').textContent = 'Save score'; $('save-score').disabled = false; $('guess').disabled = false; document.querySelector('#guess-form button').disabled = false; $('guess').value = ''; $('guess').min = 1; $('guess').max = level.max; $('attempts-label').textContent = `${attempts} attempts remaining`; $('guess').focus();
+    }
+    $('start').addEventListener('click', startRound);
+    $('guess-form').addEventListener('submit', event => {
+      event.preventDefault(); if (gameOver) return; const level = levels[selected]; const guess = Number($('guess').value); if (!guess || guess < 1 || guess > level.max) { $('feedback').textContent = `Choose a number between 1 and ${level.max}.`; return; }
+      attempts--; $('attempts-label').textContent = `${attempts} attempts remaining`;
+      if (guess === secret) { gameOver = true; data.streak++; currentScore = level.base + attempts * 25 + data.streak * 50; $('feedback').textContent = ''; $('result-title').textContent = 'Quest complete.'; $('result-copy').textContent = `You found ${secret} and earned ${currentScore} points. Streak: ${data.streak}.`; $('result').className = 'result visible win'; $('play-area').className = 'hero play-area win'; $('guess').disabled = true; document.querySelector('#guess-form button').disabled = true; renderBoard(); }
+      else if (!attempts) { gameOver = true; data.streak = 0; $('feedback').textContent = `The number was ${secret}. Your streak is reset.`; $('result-title').textContent = 'The number escaped.'; $('result-copy').textContent = 'That one got away, but the next quest is yours.'; $('result').className = 'result visible lose'; $('play-area').className = 'hero play-area lose'; $('guess').disabled = true; document.querySelector('#guess-form button').disabled = true; renderBoard(); }
+      else { const distance = Math.abs(secret - guess); $('feedback').textContent = `${guess > secret ? 'Go lower' : 'Go higher'} - ${distance <= 5 ? 'you are very close' : 'keep searching'}!`; }
+      $('guess').value = '';
+    });
+    $('save-score').addEventListener('click', () => { const name = $('player-name').value.trim() || 'Anonymous'; data.scores.push({ name, level: levels[selected].name, score: currentScore }); saveData(); renderBoard(); $('save-score').textContent = 'Saved'; $('save-score').disabled = true; });
+    const goHome = () => { $('game').classList.remove('active'); $('home').classList.remove('home-hidden'); $('home').style.display = 'grid'; $('guess').disabled = false; document.querySelector('#guess-form button').disabled = false; renderBoard(); };
+    $('back').addEventListener('click', goHome);
+    $('result-home').addEventListener('click', goHome);
+    $('play-again').addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); startRound(); });
+    applyTheme(data.theme); renderBoard();
+  </script>
+</body>
+</html>
